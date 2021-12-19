@@ -1,1 +1,2 @@
-org.springframework.nativex.type.NativeConfiguration =org.mybatis.spring.nativex.MyBatisNativeConfiguration
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=com.example.autoconfig.MyMybatisAutoConfiguration
+org.springframework.nativex.type.NativeConfiguration=org.mybatis.spring.nativex.MyBatisNativeConfiguration

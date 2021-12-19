@@ -17,6 +17,8 @@
     <properties>
         <java.version>17</java.version>
         <repackage.classifier/>
+        <mybatis.version>2.2.1-SNAPSHOT
+        </mybatis.version>
         <spring-native.version>0.11.0</spring-native.version>
     </properties>
     <dependencies>
@@ -27,7 +29,7 @@
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
-            <version>2.2.0</version>
+            <version>${mybatis.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.experimental</groupId>
