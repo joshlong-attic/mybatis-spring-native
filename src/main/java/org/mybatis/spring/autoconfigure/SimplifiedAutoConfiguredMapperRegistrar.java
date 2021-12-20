@@ -1,12 +1,10 @@
-package com.example.autoconfig;
+package org.mybatis.spring.autoconfigure;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
-import org.mybatis.spring.boot.autoconfigure.SpringBootVFS;
 import org.mybatis.spring.mapper.MapperFactoryBean;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -21,16 +19,9 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandidate;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.ResourceLoaderAware;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ResourceLoader;
@@ -39,39 +30,11 @@ import org.springframework.core.type.classreading.MetadataReader;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.util.StringUtils;
 
-import javax.sql.DataSource;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
-@Import({AutoConfiguredMapperScannerRegistrar.class})
-@ConditionalOnClass({SqlSessionFactory.class, SqlSessionFactoryBean.class})
-@ConditionalOnSingleCandidate(DataSource.class)
-@AutoConfigureAfter({DataSourceAutoConfiguration.class})
-@org.springframework.context.annotation.Configuration
-public class MyMybatisAutoConfiguration {
-
-	@Bean
-	@ConditionalOnMissingBean
-	SqlSessionFactoryBean sqlSessionFactory(DataSource dataSource) throws Exception {
-		SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
-		factory.setDataSource(dataSource);
-		factory.setVfs(SpringBootVFS.class);
-		return factory;
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	SqlSessionTemplate sqlSessionTemplate(SqlSessionFactory sqlSessionFactory) {
-		return new SqlSessionTemplate(sqlSessionFactory);
-	}
-}
-
 @Slf4j
-class AutoConfiguredMapperScannerRegistrar
-	implements BeanFactoryAware,
-	ImportBeanDefinitionRegistrar,
-	ResourceLoaderAware, EnvironmentAware {
+class SimplifiedAutoConfiguredMapperRegistrar implements BeanFactoryAware, ImportBeanDefinitionRegistrar, ResourceLoaderAware, EnvironmentAware {
 
 	private ResourceLoader loader;
 	private Environment environment;
@@ -112,8 +75,6 @@ class AutoConfiguredMapperScannerRegistrar
 	}
 
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-		List<String> strings = AutoConfigurationPackages.get(this.factory);
-		log.info("found the following package: " + String.join(",", strings));
 		Collection<String> basePackages = this.getBasePackages();
 		ClassPathScanningCandidateComponentProvider scanner = this.buildScanner();
 		basePackages.forEach(basePackage -> scanner.findCandidateComponents(basePackage)
@@ -121,17 +82,15 @@ class AutoConfiguredMapperScannerRegistrar
 			.filter(cc -> cc instanceof AnnotatedBeanDefinition)
 			.forEach(beanDefinition -> {
 				AnnotationMetadata metadata = ((AnnotatedBeanDefinition) beanDefinition).getMetadata();
-				boolean isMapper = metadata.getAnnotationTypes().stream()
-					.anyMatch(s -> s.equals(Mapper.class.getName()));
-				if (!isMapper) {
-					return;
+				boolean isMapper = metadata.getAnnotationTypes().stream().anyMatch(s -> s.equals(Mapper.class.getName()));
+				if (isMapper) {
+					registerMapper(metadata, registry);
 				}
-				registerMapper(metadata, registry);
 			}));
 	}
 
 
-	private String beanNameFor(Class<?> clazz, ListableBeanFactory factory) {
+	private String getBeanNameForType(Class<?> clazz, ListableBeanFactory factory) {
 		String[] beanNamesForType = factory.getBeanNamesForType(clazz);
 		if (beanNamesForType.length > 0) {
 			return beanNamesForType[0];
@@ -141,22 +100,22 @@ class AutoConfiguredMapperScannerRegistrar
 
 	@SneakyThrows
 	private void registerMapper(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
-
 		Class<MapperFactoryBean> mapperFactoryBeanClass = MapperFactoryBean.class;
 		Class<?> mapperClazzName = Class.forName(metadata.getClassName());
 		String className = metadata.getClassName();
 		BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(mapperFactoryBeanClass);
+		definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
 		definition.addPropertyValue("mapperInterface", mapperClazzName);
-		if (this.factory instanceof ListableBeanFactory lbf) {
+		if (this.factory instanceof ListableBeanFactory) {
+			ListableBeanFactory listableBeanFactory = (ListableBeanFactory) this.factory;
 			Map<String, Class<?>> types = Map.of("sqlSessionFactory", SqlSessionFactory.class, "sqlSessionTemplate", SqlSessionTemplate.class);
 			types.forEach((property, type) -> {
-				String beanName = beanNameFor(type, lbf);
+				String beanName = getBeanNameForType(type, listableBeanFactory);
 				if (StringUtils.hasText(beanName)) {
 					definition.addPropertyValue(property, new RuntimeBeanReference(beanName));
 				}
 			});
 		}
-		definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
 		AbstractBeanDefinition beanDefinition = definition.getBeanDefinition();
 		beanDefinition.setAttribute(FactoryBean.OBJECT_TYPE_ATTRIBUTE, className);
 		beanDefinition.setPrimary(true);
@@ -169,4 +128,3 @@ class AutoConfiguredMapperScannerRegistrar
 		return AutoConfigurationPackages.get(this.factory);
 	}
 }
-

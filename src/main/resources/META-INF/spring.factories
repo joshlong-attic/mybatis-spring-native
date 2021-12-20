@@ -1,2 +1,3 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=com.example.autoconfig.MyMybatisAutoConfiguration
+org.springframework.aot.context.bootstrap.generator.infrastructure.nativex.BeanFactoryNativeConfigurationProcessor=org.mybatis.spring.nativex.MyBatisBeanFactoryNativeConfigurationProcessor
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=org.mybatis.spring.autoconfigure.SimplifiedMybatisAutoConfiguration
 org.springframework.nativex.type.NativeConfiguration=org.mybatis.spring.nativex.MyBatisNativeConfiguration
