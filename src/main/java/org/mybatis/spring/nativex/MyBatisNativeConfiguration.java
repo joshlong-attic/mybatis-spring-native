@@ -15,6 +15,7 @@ import org.apache.ibatis.scripting.defaults.RawLanguageDriver;
 import org.apache.ibatis.scripting.xmltags.XMLLanguageDriver;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.mapper.MapperScannerConfigurer;
 import org.springframework.nativex.hint.InitializationHint;
 import org.springframework.nativex.hint.InitializationTime;
 import org.springframework.nativex.hint.NativeHint;
@@ -37,6 +38,9 @@ import static org.springframework.nativex.hint.TypeAccess.*;
 )
 @TypeHint(
 	types = {
+		com.example.autoconfig.MapperScannerConfigurer.class,// Josh's cleaned up version for debugging
+		MapperScannerConfigurer.class,
+		//		something's wrong im being sent on a wild goose chase above ignore the stuff above this
 		RawLanguageDriver.class,
 		XMLLanguageDriver.class,
 		RuntimeSupport.class,
@@ -49,7 +53,8 @@ import static org.springframework.nativex.hint.TypeAccess.*;
 		Jdk14LoggingImpl.class,
 		StdOutImpl.class,
 		NoLoggingImpl.class,
-		SqlSessionFactory.class, SqlSessionFactoryBean.class,
+		SqlSessionFactory.class,
+		SqlSessionFactoryBean.class,
 	}, //
 	access = {
 		PUBLIC_CONSTRUCTORS,
