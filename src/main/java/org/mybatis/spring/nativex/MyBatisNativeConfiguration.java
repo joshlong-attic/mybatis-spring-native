@@ -28,6 +28,7 @@ import static org.springframework.nativex.hint.TypeAccess.*;
 	* Registers hints to make a MyBatis Mapper work in a Spring Native context
 	*
 	* @author Josh Long
+	* @see MyBatisBeanFactoryNativeConfigurationProcessor
 	*/
 @NativeHint(
 	initialization = {

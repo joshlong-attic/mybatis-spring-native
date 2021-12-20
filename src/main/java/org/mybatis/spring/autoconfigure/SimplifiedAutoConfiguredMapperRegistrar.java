@@ -34,7 +34,8 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
-	* Proof of concept {@link ImportBeanDefinitionRegistrar} registrar
+	* Proof of concept {@link ImportBeanDefinitionRegistrar} registrar that works in a Spring Native context.
+	*
 	* @author Josh Long
 	*/
 @Slf4j
