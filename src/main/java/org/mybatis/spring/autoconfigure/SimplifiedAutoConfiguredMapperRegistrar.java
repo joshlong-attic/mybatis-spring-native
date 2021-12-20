@@ -33,6 +33,10 @@ import org.springframework.util.StringUtils;
 import java.util.Collection;
 import java.util.Map;
 
+/**
+	* Proof of concept {@link ImportBeanDefinitionRegistrar} registrar
+	* @author Josh Long
+	*/
 @Slf4j
 class SimplifiedAutoConfiguredMapperRegistrar implements BeanFactoryAware, ImportBeanDefinitionRegistrar, ResourceLoaderAware, EnvironmentAware {
 
